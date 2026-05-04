@@ -18,11 +18,11 @@ const inter = Inter({
 
 export const metadata = {
   title: 'Fusion Gear – Sri Lanka\'s #1 Jersey Plug',
-  description: 'Premium football jerseys, retro kits, and lifestyle fits. 400+ verified customer reviews. Sri Lanka\'s most trusted jersey store.',
+  description: 'Premium football jerseys, retro kits, and lifestyle fits. 1000+ verified customer reviews. Sri Lanka\'s most trusted jersey store.',
   keywords: ['jerseys', 'football kits', 'Sri Lanka', 'Fusion Gear', 'retro kits', 'world cup kits'],
   openGraph: {
     title: 'Fusion Gear – Sri Lanka\'s #1 Jersey Plug',
-    description: 'Premium football jerseys with 400+ verified reviews. Shop retro kits, World Cup jerseys & more.',
+    description: 'Premium football jerseys with 1000+ verified reviews. Shop retro kits, World Cup jerseys & more.',
     type: 'website',
     locale: 'en_US',
     siteName: 'Fusion Gear',
@@ -30,7 +30,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Fusion Gear – Sri Lanka\'s #1 Jersey Plug',
-    description: 'Premium football jerseys with 400+ verified reviews.',
+    description: 'Premium football jerseys with 1000+ verified reviews.',
   },
   robots: {
     index: true,

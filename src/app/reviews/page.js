@@ -179,7 +179,7 @@ export default function ReviewsPage() {
     observerRef.current.observe(node);
   }, [fetchReviews]);
 
-  const displayCount = Math.max(stats.totalReviews || 0, 400);
+  const displayCount = Math.max(stats.totalReviews || 0, 1000);
 
   return (
     <div className="min-h-screen pt-20">

@@ -33,10 +33,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent to-green-dark flex items-center justify-center overflow-hidden group-hover:shadow-lg group-hover:shadow-accent/20 transition-shadow duration-300">
-              <span className="text-white font-heading font-bold text-lg sm:text-xl">FG</span>
-            </div>
+          <Link href="/" className="flex items-center gap-0 group">
+            <img src="/logo.png" alt="Fusion Gear" className="h-16 sm:h-20 w-auto group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-300" />
             <div className="hidden sm:block">
               <span className="text-lg font-heading font-bold text-text-primary">
                 Fusion<span className="text-accent">Gear</span>

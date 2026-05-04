@@ -85,7 +85,7 @@ export default function HomePage() {
       .catch(() => {});
   }, []);
 
-  const displayReviewCount = Math.max(stats.totalReviews || 0, 400);
+  const displayReviewCount = Math.max(stats.totalReviews || 0, 1000);
 
   return (
     <div className="relative">
@@ -126,9 +126,9 @@ export default function HomePage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-heading font-bold leading-[1.1] mb-6"
             >
-              Premium Jerseys.
+              Worn by Many.
               <br />
-              <span className="gradient-text">Real Reviews.</span>
+              <span className="gradient-text">Loved by all.</span>
             </motion.h1>
 
             {/* Subtitle */}
@@ -138,8 +138,7 @@ export default function HomePage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed"
             >
-              Join {displayReviewCount}+ happy customers. Shop the finest football kits, retro jerseys, 
-              and lifestyle fits — delivered straight to your door in Sri Lanka.
+              Trusted by 10000+ fans worldwide. Consistency, quality, and service you can rely on.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -173,22 +172,22 @@ export default function HomePage() {
             >
               <div className="text-center">
                 <div className="text-2xl sm:text-4xl font-heading font-bold text-accent">
-                  <AnimatedCounter end={displayReviewCount} suffix="+" />
+                  <AnimatedCounter end={6500} suffix="+" />
                 </div>
-                <p className="text-xs sm:text-sm text-text-muted mt-1">Verified Reviews</p>
+                <p className="text-xs sm:text-sm text-text-muted mt-1">Kits Delivered</p>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-4xl font-heading font-bold text-gold flex items-center justify-center gap-1">
+                <div className="text-2xl sm:text-4xl font-heading font-bold text-gold">
+                  <AnimatedCounter end={1000} suffix="+" />
+                </div>
+                <p className="text-xs sm:text-sm text-text-muted mt-1">Verified Customers</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-4xl font-heading font-bold text-text-primary flex items-center justify-center gap-1">
                   <AnimatedCounter end={stats.averageRating || 4.9} suffix="" duration={1000} />
                   <Star size={20} className="fill-gold text-gold sm:w-6 sm:h-6" />
                 </div>
                 <p className="text-xs sm:text-sm text-text-muted mt-1">Average Rating</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-4xl font-heading font-bold text-text-primary">
-                  <AnimatedCounter end={1000} suffix="+" />
-                </div>
-                <p className="text-xs sm:text-sm text-text-muted mt-1">Happy Customers</p>
               </div>
             </motion.div>
           </div>
@@ -215,10 +214,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
             {[
-              { icon: ShieldCheck, label: '100% Authentic', desc: 'Verified quality' },
-              { icon: Truck, label: 'Island-wide Delivery', desc: 'Fast & reliable' },
-              { icon: Award, label: 'Premium Quality', desc: 'Best materials' },
-              { icon: MessageCircle, label: 'WhatsApp Support', desc: 'Always available' },
+              { icon: ShieldCheck, label: '6500+ Kits Delivered', desc: 'Worn across Sri Lanka' },
+              { icon: Award, label: '1000+ Verified Customers', desc: 'Real reviews. Real feedback' },
+              { icon: Truck, label: 'Islandwide Delivery', desc: 'Fast. Reliable. Consistent' },
+              { icon: MessageCircle, label: 'WhatsApp Support', desc: 'Quick replies. No delays' },
             ].map((item, i) => (
               <motion.div
                 key={item.label}
@@ -310,7 +309,7 @@ export default function HomePage() {
                 Got Your Jersey? Share Your Experience!
               </h2>
               <p className="text-white/80 max-w-xl mx-auto mb-8 text-lg">
-                Join our growing community of {displayReviewCount}+ satisfied customers. Your review helps others trust and shop with confidence.
+                Join our growing community of 10000+ satisfied customers. Your review helps others trust and shop with confidence.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link

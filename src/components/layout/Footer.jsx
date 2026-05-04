@@ -11,9 +11,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-green-dark flex items-center justify-center">
-                <span className="text-white font-heading font-bold text-lg">FG</span>
-              </div>
+              <img src="/logo.png" alt="Fusion Gear" className="h-16 w-auto" />
               <div>
                 <span className="text-lg font-heading font-bold">
                   Fusion<span className="text-accent">Gear</span>
