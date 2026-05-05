@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+/** Performance optimized — CDN caching, AVIF images, gzip compression */
 const nextConfig = {
   compress: true,
   poweredByHeader: false,
