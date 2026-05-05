@@ -51,10 +51,12 @@ function ReviewCard({ review, index }) {
       className="min-w-[280px] sm:min-w-[320px] glass-card rounded-2xl overflow-hidden group hover:border-accent/30 transition-all duration-300"
     >
       <div className="relative aspect-square overflow-hidden">
-        <img
+        <Image
           src={review.imageUrl || review.thumbnailUrl}
           alt={`Review by ${review.name}`}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          fill
+          sizes="(max-width: 640px) 280px, 320px"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4">

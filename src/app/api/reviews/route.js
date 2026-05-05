@@ -18,8 +18,9 @@ export async function GET(request) {
     const search = searchParams.get('search') || '';
     const featured = searchParams.get('featured');
 
-    // Check if admin request
-    const admin = await authenticateAdmin(request);
+    // Only check admin auth when status param is explicitly set (admin panel use case)
+    // This skips JWT parsing overhead for regular public visitors
+    const admin = status !== 'approved' ? await authenticateAdmin(request) : null;
 
     const query = {};
 
@@ -55,7 +56,7 @@ export async function GET(request) {
       Review.countDocuments(query),
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       reviews,
       pagination: {
         page,
@@ -65,6 +66,18 @@ export async function GET(request) {
         hasMore: skip + reviews.length < total,
       },
     });
+
+    // Cache public responses at Vercel CDN edge
+    // s-maxage=60: CDN serves cached response for 60 seconds
+    // stale-while-revalidate=300: serve stale for up to 5 min while refreshing in background
+    if (!admin) {
+      response.headers.set(
+        'Cache-Control',
+        'public, s-maxage=60, stale-while-revalidate=300'
+      );
+    }
+
+    return response;
   } catch (error) {
     console.error('Get reviews error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

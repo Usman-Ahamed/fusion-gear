@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Search, Filter, ChevronDown, X, Calendar, TrendingUp } from 'lucide-react';
 import StarRating from '@/components/ui/StarRating';
@@ -24,11 +25,12 @@ function ReviewCard({ review, onClick, index }) {
       className="group cursor-pointer rounded-xl overflow-hidden bg-bg-surface border border-border hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/5"
     >
       <div className="relative aspect-square overflow-hidden">
-        <img
+        <Image
           src={review.thumbnailUrl || review.imageUrl}
           alt={`Review by ${review.name}`}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          loading="lazy"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          className="object-cover group-hover:scale-110 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -53,11 +55,13 @@ function ReviewModal({ review, onClose }) {
   return (
     <Modal isOpen={!!review} onClose={onClose}>
       <div className="sm:flex">
-        <div className="sm:w-1/2 aspect-square sm:aspect-auto">
-          <img
+        <div className="sm:w-1/2 aspect-square sm:aspect-auto relative">
+          <Image
             src={review.imageUrl}
             alt={`Review by ${review.name}`}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, 50vw"
+            className="object-cover"
           />
         </div>
         <div className="sm:w-1/2 p-6 flex flex-col">

@@ -35,7 +35,7 @@ export async function GET() {
 
     const pendingCount = await Review.countDocuments({ status: 'pending' });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       totalReviews: stats?.totalReviews || 0,
       averageRating: Math.round((stats?.averageRating || 0) * 10) / 10,
       distribution: {
@@ -47,6 +47,16 @@ export async function GET() {
       },
       pendingCount,
     });
+
+    // Stats rarely change — cache aggressively at CDN edge
+    // s-maxage=300: fresh for 5 minutes
+    // stale-while-revalidate=600: serve stale for up to 10 min while refreshing
+    response.headers.set(
+      'Cache-Control',
+      'public, s-maxage=300, stale-while-revalidate=600'
+    );
+
+    return response;
   } catch (error) {
     console.error('Stats error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

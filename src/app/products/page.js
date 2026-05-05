@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Search, ShoppingBag, ExternalLink, MessageCircle } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
@@ -19,7 +20,7 @@ function ProductCard({ product, onClick, index }) {
     >
       <div className="relative aspect-[3/4] overflow-hidden">
         {mainImage ? (
-          <img src={mainImage.thumbnailUrl || mainImage.url} alt={product.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+          <Image src={mainImage.thumbnailUrl || mainImage.url} alt={product.title} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-700" />
         ) : (
           <div className="w-full h-full bg-bg-elevated flex items-center justify-center"><ShoppingBag size={40} className="text-text-muted" /></div>
         )}
@@ -49,9 +50,9 @@ function ProductModal({ product, onClose }) {
     <Modal isOpen={!!product} onClose={onClose}>
       <div className="sm:flex">
         <div className="sm:w-1/2">
-          <div className="aspect-[3/4]">
+          <div className="aspect-[3/4] relative">
             {product.images?.[selectedImage]?.url ? (
-              <img src={product.images[selectedImage].url} alt={product.title} className="w-full h-full object-cover" />
+              <Image src={product.images[selectedImage].url} alt={product.title} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover" />
             ) : (
               <div className="w-full h-full bg-bg-elevated flex items-center justify-center">
                 <ShoppingBag size={64} className="text-text-muted" />
@@ -61,8 +62,8 @@ function ProductModal({ product, onClose }) {
           {product.images?.length > 1 && (
             <div className="flex gap-2 p-3 overflow-x-auto">
               {product.images.map((img, i) => (
-                <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden shrink-0 border-2 transition-colors ${i === selectedImage ? 'border-accent' : 'border-transparent'}`}>
-                  <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" />
+                <button key={i} onClick={() => setSelectedImage(i)} className={`w-16 h-16 rounded-lg overflow-hidden shrink-0 border-2 transition-colors relative ${i === selectedImage ? 'border-accent' : 'border-transparent'}`}>
+                  <Image src={img.thumbnailUrl || img.url} alt="" fill sizes="64px" className="object-cover" />
                 </button>
               ))}
             </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Globe, MessageCircle, Mail, MapPin } from 'lucide-react';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '94XXXXXXXXX';
@@ -11,7 +12,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <img src="/logo.png" alt="Fusion Gear" className="h-16 w-auto" />
+              <Image src="/logo.png" alt="Fusion Gear" width={64} height={64} className="h-16 w-auto" />
               <div>
                 <span className="text-lg font-heading font-bold">
                   Fusion<span className="text-accent">Gear</span>

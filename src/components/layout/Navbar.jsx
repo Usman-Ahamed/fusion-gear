@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Star, ShoppingBag, MessageSquare, Shield } from 'lucide-react';
 
@@ -34,7 +35,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-0 group">
-            <img src="/logo.png" alt="Fusion Gear" className="h-16 sm:h-20 w-auto group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-300" />
+            <Image src="/logo.png" alt="Fusion Gear" width={80} height={80} priority className="h-16 sm:h-20 w-auto group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-300" />
             <div className="hidden sm:block">
               <span className="text-lg font-heading font-bold text-text-primary">
                 Fusion<span className="text-accent">Gear</span>
