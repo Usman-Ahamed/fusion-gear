@@ -1,67 +1,60 @@
-import { Outfit, Inter } from 'next/font/google';
+import { preconnect } from 'react-dom';
+import { Montserrat } from 'next/font/google';
 import './globals.css';
-import { Toaster } from 'react-hot-toast';
-import Navbar from '@/components/layout/Navbar';
+import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import WhatsAppButton from '@/components/layout/WhatsAppButton';
+import JsonLd from '@/components/JsonLd';
+import { SITE_URL, STORE_URL, INSTAGRAM_URL, CONTACT_EMAIL } from '@/config/site';
 
-const outfit = Outfit({
+// next/font downloads the font at build time and serves it from this site.
+const montserrat = Montserrat({
   subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-body',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-montserrat',
   display: 'swap',
 });
 
 export const metadata = {
-  title: 'Fusion Gear – Sri Lanka\'s #1 Jersey Plug',
-  description: 'Premium football jerseys, retro kits, and lifestyle fits. 1000+ verified customer reviews. Sri Lanka\'s most trusted jersey store.',
-  keywords: ['jerseys', 'football kits', 'Sri Lanka', 'Fusion Gear', 'retro kits', 'world cup kits'],
-  openGraph: {
-    title: 'Fusion Gear – Sri Lanka\'s #1 Jersey Plug',
-    description: 'Premium football jerseys with 1000+ verified reviews. Shop retro kits, World Cup jerseys & more.',
-    type: 'website',
-    locale: 'en_US',
-    siteName: 'Fusion Gear',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Fusion Gear Reviews: real customers, real jerseys',
+    template: '%s | Fusion Gear Reviews',
   },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Fusion Gear – Sri Lanka\'s #1 Jersey Plug',
-    description: 'Premium football jerseys with 1000+ verified reviews.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  description: "Real reviews and photos from Fusion Gear customers across Sri Lanka. See what lands at their door, then shop at fusiongear.lk.",
+  applicationName: 'Fusion Gear Reviews',
+  openGraph: { type: 'website', siteName: 'Fusion Gear Reviews', locale: 'en_LK' },
+  twitter: { card: 'summary_large_image' },
+  formatDetection: { telephone: false },
+};
+
+export const viewport = {
+  themeColor: '#0a0a0a',
+};
+
+const organization = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': `${STORE_URL}/#organization`,
+  name: 'Fusion Gear',
+  url: STORE_URL,
+  logo: `${SITE_URL}/logo-96.png`,
+  email: CONTACT_EMAIL,
+  sameAs: [INSTAGRAM_URL, SITE_URL],
+  areaServed: 'LK',
 };
 
 export default function RootLayout({ children }) {
+  // Review photos come from Cloudinary: open the connection early.
+  preconnect('https://res.cloudinary.com'); // no crossOrigin: <img> requests are non-CORS
   return (
-    <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
-      <body className="min-h-screen flex flex-col bg-bg-primary text-text-primary font-body">
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#1a1a1a',
-              color: '#fff',
-              border: '1px solid #2a2a2a',
-            },
-            success: {
-              iconTheme: { primary: '#10b981', secondary: '#fff' },
-            },
-            error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' },
-            },
-          }}
-        />
-        <Navbar />
-        <main className="flex-1">{children}</main>
+    <html lang="en" className={montserrat.variable}>
+      <body className="min-h-dvh flex flex-col">
+        <JsonLd data={organization} />
+        <Header />
+        <main id="main" className="flex-1">{children}</main>
         <Footer />
+        <WhatsAppButton />
       </body>
     </html>
   );

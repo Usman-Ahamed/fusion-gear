@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Search, Check, X, Trash2, Star as StarIcon, Eye, BadgeCheck, ImageOff } from 'lucide-react';
 import { CATEGORIES } from '@/config/site';
 
@@ -12,28 +11,28 @@ import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('pending');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({});
+  const [reload, setReload] = useState(0);
   const [selectedReview, setSelectedReview] = useState(null);
+  const [result, setResult] = useState({ key: null, reviews: [], pagination: {} });
 
-  const fetchReviews = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page, limit: 20, status: tab });
-      if (search) params.set('search', search);
-      const res = await fetch(`/api/reviews?${params}`);
-      const data = await res.json();
-      setReviews(data.reviews || []);
-      setPagination(data.pagination || {});
-    } catch { /* ignore */ } finally { setLoading(false); }
-  }, [tab, search, page]);
+  const key = `${tab}|${search}|${page}|${reload}`;
+  const loading = result.key !== key;
+  const { reviews, pagination } = result;
+  const fetchReviews = () => setReload((n) => n + 1);
 
-  useEffect(() => { setPage(1); }, [tab, search]);
-  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+  useEffect(() => {
+    let ignore = false;
+    const params = new URLSearchParams({ page, limit: 20, status: tab });
+    if (search) params.set('search', search);
+    fetch(`/api/reviews?${params}`)
+      .then((r) => r.json())
+      .then((data) => { if (!ignore) setResult({ key, reviews: data.reviews || [], pagination: data.pagination || {} }); })
+      .catch(() => { if (!ignore) { setResult({ key, reviews: [], pagination: {} }); toast.error('Could not load reviews'); } });
+    return () => { ignore = true; };
+  }, [key, page, search, tab]);
 
   const updateReview = async (id, updates) => {
     try {
@@ -68,7 +67,7 @@ export default function AdminReviewsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-heading font-bold">Reviews</h1>
+        <h1 className="text-2xl font-bold">Reviews</h1>
         <p className="text-text-muted text-sm mt-1">Manage customer reviews</p>
       </div>
 
@@ -76,12 +75,12 @@ export default function AdminReviewsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
         <div className="flex gap-1 bg-bg-surface rounded-xl p-1 border border-border">
           {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'}`}>{t.label}</button>
+            <button key={t.key} onClick={() => { setTab(t.key); setPage(1); }} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t.key ? 'bg-accent text-white' : 'text-text-secondary hover:text-text-primary'}`}>{t.label}</button>
           ))}
         </div>
         <div className="relative flex-1 max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input type="text" placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-8 pr-3 py-2 bg-bg-surface border border-border rounded-lg text-sm focus:outline-none focus:border-accent/50 transition-all" />
+          <input type="text" placeholder="Search..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="w-full pl-8 pr-3 py-2 bg-bg-surface border border-border rounded-lg text-sm focus:outline-none focus:border-accent/50 transition-all" />
         </div>
       </div>
 
@@ -93,7 +92,7 @@ export default function AdminReviewsPage() {
       ) : (
         <div className="space-y-2">
           {reviews.map((review, i) => (
-            <motion.div key={review._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+            <div key={review._id}
               className="flex items-center gap-3 p-3 rounded-xl bg-bg-surface border border-border hover:border-border-light transition-colors"
             >
               <button type="button" onClick={() => setSelectedReview(review)} className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-bg-elevated flex items-center justify-center" aria-label={`Open review by ${review.name}`}>
@@ -123,7 +122,7 @@ export default function AdminReviewsPage() {
                 <button onClick={() => setSelectedReview(review)} className="p-2 rounded-lg hover:bg-bg-elevated text-text-muted transition-colors" title="View"><Eye size={16} /></button>
                 <button onClick={() => deleteReview(review._id)} className="p-2 rounded-lg hover:bg-error/10 text-text-muted hover:text-error transition-colors" title="Delete"><Trash2 size={16} /></button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
@@ -138,7 +137,7 @@ export default function AdminReviewsPage() {
       )}
 
       {/* Preview Modal */}
-      <Modal isOpen={!!selectedReview} onClose={() => setSelectedReview(null)}>
+      <Modal isOpen={!!selectedReview} onClose={() => setSelectedReview(null)} label="Review details">
         {selectedReview && (
           <div className="sm:flex">
             <div className="sm:w-1/2 bg-bg-elevated">
@@ -148,7 +147,7 @@ export default function AdminReviewsPage() {
             </div>
             <div className="sm:w-1/2 p-6 space-y-4">
               <div>
-                <h3 className="text-xl font-heading font-bold">{selectedReview.name}</h3>
+                <h3 className="text-xl font-bold">{selectedReview.name}</h3>
                 <p className="text-sm text-text-muted">{formatDate(selectedReview.createdAt)} · {selectedReview.source}</p>
               </div>
               {selectedReview.source === 'customer' && <StarRating rating={selectedReview.rating} size={18} />}

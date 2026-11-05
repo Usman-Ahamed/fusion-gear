@@ -1,130 +1,53 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Globe, MessageCircle, Mail, MapPin } from 'lucide-react';
+import { CATEGORIES, CONTACT_EMAIL, INSTAGRAM_URL, TAGLINE, TRACK_URL, WHATSAPP_URL } from '@/config/site';
+import { storeLink } from '@/lib/links';
+import { InstagramIcon, WhatsAppIcon } from '@/components/ui/Icons';
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '94XXXXXXXXX';
+const linkClass = 'inline-block py-1.5 text-sm text-muted-dark hover:text-paper';
 
 export default function Footer() {
   return (
-    <footer className="bg-bg-secondary border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-          {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-3 mb-4">
-              <Image src="/logo.png" alt="Fusion Gear" width={64} height={64} className="h-16 w-auto" />
-              <div>
-                <span className="text-lg font-heading font-bold">
-                  Fusion<span className="text-accent">Gear</span>
-                </span>
-              </div>
-            </div>
-            <p className="text-text-secondary text-sm leading-relaxed mb-4">
-              Sri Lanka&apos;s #1 Jersey Plug. Premium football jerseys, retro kits, and lifestyle fits delivered to your doorstep.
-            </p>
-            <div className="flex items-center gap-3">
-              <a
-                href="https://instagram.com/fusiongear.lk"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-lg bg-bg-surface hover:bg-accent/20 flex items-center justify-center text-text-secondary hover:text-accent transition-all"
-              >
-                <Globe size={18} />
-              </a>
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-lg bg-bg-surface hover:bg-accent/20 flex items-center justify-center text-text-secondary hover:text-accent transition-all"
-              >
-                <MessageCircle size={18} />
-              </a>
-              <a
-                href="mailto:fusiongear.lk@gmail.com"
-                className="w-10 h-10 rounded-lg bg-bg-surface hover:bg-accent/20 flex items-center justify-center text-text-secondary hover:text-accent transition-all"
-              >
-                <Mail size={18} />
-              </a>
-            </div>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-text-muted mb-4">
-              Quick Links
-            </h3>
-            <ul className="space-y-3">
-              {[
-                { href: '/reviews', label: 'Customer Reviews' },
-                { href: '/products', label: 'Products' },
-                { href: '/submit-review', label: 'Write a Review' },
-              ].map(link => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-text-secondary hover:text-accent text-sm transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-text-muted mb-4">
-              Categories
-            </h3>
-            <ul className="space-y-3">
-              {['Retro Kits', 'Club Jerseys', 'World Cup Kits', 'Lifestyle Fits'].map(cat => (
-                <li key={cat}>
-                  <Link
-                    href={`/products?category=${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="text-text-secondary hover:text-accent text-sm transition-colors"
-                  >
-                    {cat}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3 className="font-heading font-semibold text-sm uppercase tracking-wider text-text-muted mb-4">
-              Contact Us
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-text-secondary">
-                <MapPin size={16} className="mt-0.5 shrink-0" />
-                <span>Sri Lanka</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-text-secondary">
-                <Mail size={16} className="mt-0.5 shrink-0" />
-                <a href="mailto:fusiongear.lk@gmail.com" className="hover:text-accent transition-colors">
-                  fusiongear.lk@gmail.com
-                </a>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-text-secondary">
-                <MessageCircle size={16} className="mt-0.5 shrink-0" />
-                <a href={`https://wa.me/${WHATSAPP_NUMBER}`} className="hover:text-accent transition-colors">
-                  WhatsApp Us
-                </a>
-              </li>
-            </ul>
+    <footer className="bg-ink text-paper mt-20">
+      <div className="container-page py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Image src="/logo-96.png" alt="Fusion Gear" width={88} height={48} unoptimized />
+          <p className="mt-4 text-sm text-muted-dark max-w-xs">{TAGLINE}. Club, national and retro jerseys, delivered islandwide.</p>
+          <div className="mt-5 flex gap-2">
+            <a href={INSTAGRAM_URL} className="p-2.5 border border-ink-soft hover:border-paper" aria-label="Fusion Gear on Instagram"><InstagramIcon /></a>
+            {WHATSAPP_URL && <a href={WHATSAPP_URL} className="p-2.5 border border-ink-soft hover:border-paper" aria-label="Chat with Fusion Gear on WhatsApp"><WhatsAppIcon /></a>}
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-text-muted">
-            © {new Date().getFullYear()} Fusion Gear. All rights reserved.
-          </p>
-          <p className="text-xs text-text-muted">
-            Sri Lanka&apos;s Most Trusted Jersey Store ⚽
-          </p>
-        </div>
+        <nav aria-labelledby="footer-shop">
+          <h2 id="footer-shop" className="eyebrow mb-3">Shop</h2>
+          <ul>
+            {CATEGORIES.filter((c) => c.slug !== 'other').map((c) => (
+              <li key={c.slug}><a href={storeLink(c.url, 'footer')} className={linkClass}>{c.label}</a></li>
+            ))}
+          </ul>
+        </nav>
+
+        <nav aria-labelledby="footer-reviews">
+          <h2 id="footer-reviews" className="eyebrow mb-3">Reviews</h2>
+          <ul>
+            <li><Link href="/reviews" className={linkClass}>All reviews</Link></li>
+            <li><Link href="/reviews?photos=1" className={linkClass}>Reviews with photos</Link></li>
+            <li><Link href="/submit-review" className={linkClass}>Write a review</Link></li>
+          </ul>
+        </nav>
+
+        <nav aria-labelledby="footer-help">
+          <h2 id="footer-help" className="eyebrow mb-3">Help</h2>
+          <ul>
+            <li><a href={TRACK_URL} className={linkClass}>Track your order</a></li>
+            {WHATSAPP_URL && <li><a href={WHATSAPP_URL} className={linkClass}>WhatsApp us</a></li>}
+            <li><a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>{CONTACT_EMAIL}</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div className="border-t border-ink-soft">
+        <p className="container-page py-5 text-xs text-muted-dark">© {new Date().getFullYear()} Fusion Gear, Sri Lanka</p>
       </div>
     </footer>
   );

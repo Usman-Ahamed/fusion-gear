@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Star, Upload, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 const sidebarLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,21 +35,23 @@ export default function AdminLayout({ children }) {
   };
 
   // Don't apply admin layout to login page
-  if (isLoginPage) return children;
+  const toaster = <Toaster position="top-center" toastOptions={{ style: { borderRadius: 0, fontWeight: 600 } }} />;
+  if (isLoginPage) return <>{toaster}{children}</>;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin" /></div>;
   }
 
   return (
-    <div className="min-h-screen flex pt-16 sm:pt-20">
+    <div className="min-h-screen flex">
+      {toaster}
       {/* Mobile sidebar toggle */}
-      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden fixed bottom-4 right-4 z-50 p-3 bg-accent text-white rounded-full shadow-lg shadow-accent/25">
+      <button onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? 'Close menu' : 'Open menu'} className="lg:hidden fixed bottom-20 right-4 z-50 p-3 bg-accent text-white rounded-full">
         {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       {/* Sidebar */}
-      <aside className={`fixed lg:sticky top-16 sm:top-20 left-0 h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)] w-64 bg-bg-secondary border-r border-border z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-bg-secondary border-r border-border z-40 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="flex flex-col h-full p-4">
           <div className="mb-6">
             <p className="text-xs text-text-muted uppercase tracking-wider font-semibold px-3 mb-2">Admin Panel</p>

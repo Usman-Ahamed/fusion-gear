@@ -131,3 +131,17 @@ export const getFeaturedReviews = unstable_cache(
   ['reviews-featured'],
   { tags: [REVIEWS_TAG], revalidate: 600 }
 );
+
+/** Photos from written customer reviews (not screenshots), newest first, for the gallery strip. */
+export const getCustomerPhotos = unstable_cache(
+  async (limit = 16) => {
+    await dbConnect();
+    const docs = await Review.find({ ...APPROVED, source: 'customer', 'photos.0': { $exists: true } })
+      .select('name photos createdAt').sort({ createdAt: -1 }).limit(limit).lean();
+    return docs.flatMap((d) => d.photos.map((p) => ({
+      url: p.url, width: p.width || null, height: p.height || null, caption: `Photo from ${d.name}`,
+    }))).slice(0, limit);
+  },
+  ['reviews-customer-photos'],
+  { tags: [REVIEWS_TAG], revalidate: 600 }
+);

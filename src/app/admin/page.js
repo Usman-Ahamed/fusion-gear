@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import { Star, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -36,17 +35,17 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-heading font-bold">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
         <p className="text-text-muted text-sm mt-1">Welcome back to Fusion Gear admin</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((stat, i) => (
-          <motion.div
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
+           
+           
+           
             className="p-5 rounded-2xl bg-bg-surface border border-border hover:border-border-light transition-colors"
           >
             <div className="flex items-center justify-between mb-3">
@@ -54,9 +53,9 @@ export default function AdminDashboard() {
                 <stat.icon size={18} className={stat.color} />
               </div>
             </div>
-            <p className="text-2xl font-heading font-bold">{stat.value}</p>
+            <p className="text-2xl font-bold">{stat.value}</p>
             <p className="text-xs text-text-muted mt-1">{stat.label}</p>
-          </motion.div>
+          </div>
         ))}
       </div>
 
