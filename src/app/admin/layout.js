@@ -3,14 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Star, ShoppingBag, FolderOpen, Upload, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Star, Upload, LogOut, Menu, X, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const sidebarLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/reviews', label: 'Reviews', icon: Star },
-  { href: '/admin/products', label: 'Products', icon: ShoppingBag },
-  { href: '/admin/categories', label: 'Categories', icon: FolderOpen },
   { href: '/admin/upload', label: 'Bulk Upload', icon: Upload },
 ];
 

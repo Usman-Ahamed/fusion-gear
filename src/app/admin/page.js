@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Star, ShoppingBag, FolderOpen, Clock, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
+import { Star, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminDashboard() {
@@ -30,9 +30,6 @@ export default function AdminDashboard() {
     { label: 'Total Reviews', value: stats?.totalReviews || 0, icon: Star, color: 'text-gold', bg: 'bg-gold/10' },
     { label: 'Approved', value: stats?.approvedReviews || 0, icon: CheckCircle, color: 'text-accent', bg: 'bg-accent/10' },
     { label: 'Pending', value: stats?.pendingReviews || 0, icon: Clock, color: 'text-warning', bg: 'bg-warning/10' },
-    { label: 'Products', value: stats?.totalProducts || 0, icon: ShoppingBag, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { label: 'Categories', value: stats?.totalCategories || 0, icon: FolderOpen, color: 'text-purple-400', bg: 'bg-purple-400/10' },
-    { label: 'Avg Rating', value: stats?.averageRating || 0, icon: TrendingUp, color: 'text-accent', bg: 'bg-accent/10' },
     { label: 'Rejected', value: stats?.rejectedReviews || 0, icon: XCircle, color: 'text-error', bg: 'bg-error/10' },
   ];
 
@@ -72,7 +69,7 @@ export default function AdminDashboard() {
           <div className="divide-y divide-border">
             {stats.recentReviews.map(review => (
               <div key={review._id} className="flex items-center gap-4 px-5 py-3">
-                <img src={review.thumbnailUrl || review.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                <img src={review.photos?.[0]?.url || review.thumbnailUrl || review.imageUrl || "/logo.png"} alt="" className="w-10 h-10 rounded-lg object-cover" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{review.name}</p>
                   <p className="text-xs text-text-muted">{formatDate(review.createdAt)}</p>

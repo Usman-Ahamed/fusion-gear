@@ -1,55 +1,32 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Review from '@/models/Review';
-import Product from '@/models/Product';
-import Category from '@/models/Category';
 import { authenticateAdmin } from '@/lib/auth';
 
-// GET /api/admin/stats - Dashboard stats
+// GET /api/admin/stats - Dashboard numbers
 export async function GET(request) {
   try {
-    const admin = await authenticateAdmin(request);
-    if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    if (!(await authenticateAdmin(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     await dbConnect();
 
-    const [
-      totalReviews,
-      approvedReviews,
-      pendingReviews,
-      rejectedReviews,
-      totalProducts,
-      totalCategories,
-      avgRating,
-      recentReviews,
-    ] = await Promise.all([
-      Review.countDocuments(),
-      Review.countDocuments({ status: 'approved' }),
-      Review.countDocuments({ status: 'pending' }),
-      Review.countDocuments({ status: 'rejected' }),
-      Product.countDocuments(),
-      Category.countDocuments(),
-      Review.aggregate([
-        { $match: { status: 'approved' } },
-        { $group: { _id: null, avg: { $avg: '$rating' } } },
-      ]),
-      Review.find().sort({ createdAt: -1 }).limit(5).lean(),
+    const [byStatus, recentReviews] = await Promise.all([
+      Review.aggregate([{ $group: { _id: '$status', n: { $sum: 1 } } }]),
+      Review.find({ status: 'pending' }).sort({ createdAt: -1 }).limit(5).lean(),
     ]);
+    const count = Object.fromEntries(byStatus.map(({ _id, n }) => [_id, n]));
 
-    return NextResponse.json({
-      totalReviews,
-      approvedReviews,
-      pendingReviews,
-      rejectedReviews,
-      totalProducts,
-      totalCategories,
-      averageRating: Math.round((avgRating[0]?.avg || 0) * 10) / 10,
-      recentReviews,
-    });
+    return NextResponse.json(
+      {
+        totalReviews: (count.approved || 0) + (count.pending || 0) + (count.rejected || 0),
+        approvedReviews: count.approved || 0,
+        pendingReviews: count.pending || 0,
+        rejectedReviews: count.rejected || 0,
+        recentReviews,
+      },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error) {
-    console.error('Admin stats error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Admin stats error:', error.message);
+    return NextResponse.json({ error: 'Could not load stats' }, { status: 500 });
   }
 }
