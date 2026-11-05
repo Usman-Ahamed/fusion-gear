@@ -2,145 +2,132 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Review from '@/models/Review';
 import { authenticateAdmin } from '@/lib/auth';
-import { uploadImage } from '@/lib/cloudinary';
-import { checkRateLimit } from '@/lib/utils';
+import { rateLimit, getClientIp } from '@/lib/rateLimit';
+import { verifyTurnstile } from '@/lib/turnstile';
+import { storeReviewPhoto, UploadError, MAX_PHOTOS } from '@/lib/images';
+import { getReviews, parseReviewQuery } from '@/lib/reviews';
+import { cleanText, escapeRegex, intInRange, isCategory } from '@/lib/validate';
 
-// GET /api/reviews - Public: get approved reviews, Admin: get all
+export const maxDuration = 30;
+
+// GET /api/reviews
+//   Public: approved reviews only (same data and filters as the /reviews page).
+//   Admin (?status=pending|approved|rejected|all): moderation list incl. private fields.
 export async function GET(request) {
   try {
-    await dbConnect();
-
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 20;
-    const sort = searchParams.get('sort') || 'latest';
-    const status = searchParams.get('status') || 'approved';
-    const search = searchParams.get('search') || '';
-    const featured = searchParams.get('featured');
+    const status = searchParams.get('status');
 
-    // Only check admin auth when status param is explicitly set (admin panel use case)
-    // This skips JWT parsing overhead for regular public visitors
-    const admin = status !== 'approved' ? await authenticateAdmin(request) : null;
+    if (!status) {
+      const data = await getReviews(parseReviewQuery(Object.fromEntries(searchParams)));
+      return NextResponse.json(data, {
+        headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600' },
+      });
+    }
+
+    const admin = await authenticateAdmin(request);
+    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const page = intInRange(searchParams.get('page'), 1, 10000) || 1;
+    const limit = intInRange(searchParams.get('limit'), 1, 100) || 24;
+    const search = cleanText(searchParams.get('search'), 80);
 
     const query = {};
-
-    // Non-admin can only see approved reviews
-    if (!admin) {
-      query.status = 'approved';
-    } else if (status !== 'all') {
-      query.status = status;
-    }
-
-    if (featured === 'true') {
-      query.featured = true;
-    }
-
+    if (['pending', 'approved', 'rejected'].includes(status)) query.status = status;
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { text: { $regex: search, $options: 'i' } },
-      ];
+      const rx = new RegExp(escapeRegex(search), 'i');
+      query.$or = [{ name: rx }, { text: rx }, { product: rx }, { orderId: rx }];
     }
 
-    let sortOption = { createdAt: -1 };
-    if (sort === 'rating') {
-      sortOption = { rating: -1, createdAt: -1 };
-    } else if (sort === 'oldest') {
-      sortOption = { createdAt: 1 };
-    }
-
-    const skip = (page - 1) * limit;
-
+    await dbConnect();
     const [reviews, total] = await Promise.all([
-      Review.find(query).sort(sortOption).skip(skip).limit(limit).lean(),
+      Review.find(query).select('+orderId +contact').sort({ createdAt: -1 })
+        .skip((page - 1) * limit).limit(limit).lean(),
       Review.countDocuments(query),
     ]);
 
-    const response = NextResponse.json({
-      reviews,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-        hasMore: skip + reviews.length < total,
-      },
-    });
-
-    // Cache public responses at Vercel CDN edge
-    // s-maxage=60: CDN serves cached response for 60 seconds
-    // stale-while-revalidate=300: serve stale for up to 5 min while refreshing in background
-    if (!admin) {
-      response.headers.set(
-        'Cache-Control',
-        'public, s-maxage=60, stale-while-revalidate=300'
-      );
-    }
-
-    return response;
+    return NextResponse.json(
+      { reviews, pagination: { page, limit, total, pages: Math.ceil(total / limit), hasMore: page * limit < total } },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error) {
-    console.error('Get reviews error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Get reviews error:', error.message);
+    return NextResponse.json({ error: 'Could not load reviews' }, { status: 500 });
   }
 }
 
-// POST /api/reviews - Public: submit a review (goes to pending)
+// POST /api/reviews - public review submission. Always lands in the moderation queue.
 export async function POST(request) {
   try {
-    // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    if (!checkRateLimit(ip, 3, 86400000)) {
+    const ip = getClientIp(request);
+    if (!(await rateLimit(`submit:${ip}`, 3, 24 * 60 * 60 * 1000))) {
       return NextResponse.json(
-        { error: 'Too many submissions. Please try again tomorrow.' },
+        { error: 'You have sent a few reviews already today. Try again tomorrow.' },
         { status: 429 }
       );
     }
 
+    let form;
+    try {
+      form = await request.formData();
+    } catch {
+      return NextResponse.json({ error: 'Upload too large. Use smaller photos.' }, { status: 413 });
+    }
+
+    // Honeypot: real people never see or fill this field. Pretend success for bots.
+    if (cleanText(form.get('company'), 100)) {
+      return NextResponse.json({ success: true }, { status: 201 });
+    }
+
+    if (!(await verifyTurnstile(form.get('cf-turnstile-response'), ip))) {
+      return NextResponse.json({ error: 'Spam check failed. Refresh the page and try again.' }, { status: 400 });
+    }
+
+    const errors = {};
+    const name = cleanText(form.get('name'), 60);
+    const text = cleanText(form.get('text'), 1000);
+    const rating = intInRange(form.get('rating'), 1, 5);
+    const product = cleanText(form.get('product'), 120);
+    const category = cleanText(form.get('category'), 40);
+    const orderId = cleanText(form.get('orderId'), 40);
+    const contact = cleanText(form.get('contact'), 120);
+    const files = form.getAll('photos').filter((f) => typeof f === 'object' && f.size > 0);
+
+    if (name.length < 2) errors.name = 'Add your name';
+    if (!rating) errors.rating = 'Pick a star rating';
+    if (text.length < 10) errors.text = 'Write at least a sentence (10+ characters)';
+    if (category && !isCategory(category)) errors.category = 'Pick a category from the list';
+    if (files.length > MAX_PHOTOS) errors.photos = `Up to ${MAX_PHOTOS} photos`;
+    if (orderId && !contact) errors.contact = 'Add the phone or email used for the order';
+
+    if (Object.keys(errors).length) {
+      return NextResponse.json({ error: 'Check the highlighted fields', fields: errors }, { status: 400 });
+    }
+
+    let photos = [];
+    try {
+      photos = await Promise.all(files.map((f) => storeReviewPhoto(f)));
+    } catch (e) {
+      if (e instanceof UploadError) return NextResponse.json({ error: e.message, fields: { photos: e.message } }, { status: 400 });
+      throw e;
+    }
+
     await dbConnect();
-
-    const formData = await request.formData();
-    const name = formData.get('name') || 'Happy Customer';
-    const text = formData.get('text') || '';
-    const rating = parseInt(formData.get('rating')) || 5;
-    const imageFile = formData.get('image');
-
-    if (!imageFile) {
-      return NextResponse.json({ error: 'Image is required' }, { status: 400 });
-    }
-
-    // Validate image
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(imageFile.type)) {
-      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
-    }
-
-    if (imageFile.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 });
-    }
-
-    // Upload to Cloudinary
-    const bytes = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const result = await uploadImage(buffer, 'fusion-gear/reviews');
-
-    const review = await Review.create({
-      imageUrl: result.secure_url,
-      publicId: result.public_id,
-      thumbnailUrl: result.eager?.[0]?.secure_url || result.secure_url,
-      name: name.substring(0, 100),
-      text: text.substring(0, 500),
-      rating: Math.min(5, Math.max(1, rating)),
+    await Review.create({
+      name, text, rating,
+      product: product || undefined,
+      category: category || undefined,
+      orderId: orderId || undefined,
+      contact: contact || undefined,
+      photos: photos.length ? photos : undefined,
       status: 'pending',
       source: 'customer',
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Review submitted! It will appear after admin approval.',
-      review,
-    }, { status: 201 });
+    return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
-    console.error('Submit review error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Submit review error:', error.message);
+    return NextResponse.json({ error: 'Something went wrong on our side. Try again in a minute.' }, { status: 500 });
   }
 }
+

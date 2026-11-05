@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Check, X, Trash2, Star as StarIcon, Eye, Edit3 } from 'lucide-react';
+import { Search, Check, X, Trash2, Star as StarIcon, Eye, BadgeCheck, ImageOff } from 'lucide-react';
+import { CATEGORIES } from '@/config/site';
+
+const thumbOf = (r) => r.photos?.[0]?.url || r.thumbnailUrl || r.imageUrl || null;
 import StarRating from '@/components/ui/StarRating';
 import Modal from '@/components/ui/Modal';
 import { formatDate } from '@/lib/utils';
@@ -11,12 +14,11 @@ import toast from 'react-hot-toast';
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('approved');
+  const [tab, setTab] = useState('pending');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [selectedReview, setSelectedReview] = useState(null);
-  const [editingReview, setEditingReview] = useState(null);
 
   const fetchReviews = useCallback(async () => {
     setLoading(true);
@@ -38,11 +40,12 @@ export default function AdminReviewsPage() {
       const res = await fetch(`/api/reviews/${id}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates),
       });
-      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       toast.success('Review updated');
       fetchReviews();
-      setEditingReview(null);
-    } catch { toast.error('Failed to update'); }
+      setSelectedReview((cur) => (cur && cur._id === id ? data.review : cur));
+    } catch (e) { toast.error(e.message || 'Failed to update'); }
   };
 
   const deleteReview = async (id) => {
@@ -56,8 +59,8 @@ export default function AdminReviewsPage() {
   };
 
   const tabs = [
-    { key: 'approved', label: 'Approved' },
     { key: 'pending', label: 'Pending' },
+    { key: 'approved', label: 'Approved' },
     { key: 'rejected', label: 'Rejected' },
     { key: 'all', label: 'All' },
   ];
@@ -93,15 +96,19 @@ export default function AdminReviewsPage() {
             <motion.div key={review._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
               className="flex items-center gap-3 p-3 rounded-xl bg-bg-surface border border-border hover:border-border-light transition-colors"
             >
-              <img src={review.thumbnailUrl || review.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0 cursor-pointer" onClick={() => setSelectedReview(review)} />
+              <button type="button" onClick={() => setSelectedReview(review)} className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-bg-elevated flex items-center justify-center" aria-label={`Open review by ${review.name}`}>
+                {thumbOf(review) ? <img src={thumbOf(review)} alt="" className="w-full h-full object-cover" /> : <ImageOff size={16} className="text-text-muted" />}
+              </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium truncate">{review.name}</p>
                   {review.featured && <span className="px-1.5 py-0.5 bg-gold/10 text-gold text-[10px] font-bold rounded">★</span>}
+                  {review.verified && <BadgeCheck size={14} className="text-accent" aria-label="Verified buyer" />}
+                  {review.orderId && !review.verified && <span className="text-[10px] text-warning">Order ID to check</span>}
                   <span className="text-xs text-text-muted">{review.source}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <StarRating rating={review.rating} size={10} />
+                  {review.source === 'customer' ? <StarRating rating={review.rating} size={10} /> : <span className="text-xs text-text-muted">screenshot</span>}
                   <span className="text-xs text-text-muted">{formatDate(review.createdAt)}</span>
                 </div>
               </div>
@@ -134,22 +141,49 @@ export default function AdminReviewsPage() {
       <Modal isOpen={!!selectedReview} onClose={() => setSelectedReview(null)}>
         {selectedReview && (
           <div className="sm:flex">
-            <div className="sm:w-1/2 aspect-square"><img src={selectedReview.imageUrl} alt="" className="w-full h-full object-cover" /></div>
-            <div className="sm:w-1/2 p-6">
-              <h3 className="text-xl font-heading font-bold mb-1">{selectedReview.name}</h3>
-              <p className="text-sm text-text-muted mb-3">{formatDate(selectedReview.createdAt)}</p>
-              <StarRating rating={selectedReview.rating} size={18} />
-              {selectedReview.text && <p className="mt-4 text-text-secondary">&quot;{selectedReview.text}&quot;</p>}
-              <div className="mt-4 flex items-center gap-2">
-                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${selectedReview.status === 'approved' ? 'bg-accent/10 text-accent' : selectedReview.status === 'pending' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'}`}>{selectedReview.status}</span>
-                <span className="text-xs text-text-muted">Source: {selectedReview.source}</span>
+            <div className="sm:w-1/2 bg-bg-elevated">
+              {(selectedReview.photos?.length ? selectedReview.photos.map((p) => p.url) : [thumbOf(selectedReview)].filter(Boolean)).map((url) => (
+                <img key={url} src={url} alt="" className="w-full object-contain" />
+              ))}
+            </div>
+            <div className="sm:w-1/2 p-6 space-y-4">
+              <div>
+                <h3 className="text-xl font-heading font-bold">{selectedReview.name}</h3>
+                <p className="text-sm text-text-muted">{formatDate(selectedReview.createdAt)} · {selectedReview.source}</p>
               </div>
-              <div className="mt-6 flex gap-2">
+              {selectedReview.source === 'customer' && <StarRating rating={selectedReview.rating} size={18} />}
+              {selectedReview.text && <p className="text-text-secondary whitespace-pre-line">{selectedReview.text}</p>}
+              {selectedReview.product && <p className="text-sm">Product: {selectedReview.product}</p>}
+
+              {selectedReview.orderId && (
+                <div className="p-3 rounded-lg bg-bg-elevated text-sm">
+                  <p>Order ID: <strong>{selectedReview.orderId}</strong></p>
+                  <p className="text-text-muted">Contact: {selectedReview.contact}</p>
+                  <a href="https://track.fusiongear.lk" target="_blank" rel="noopener noreferrer" className="text-accent underline">Check on track.fusiongear.lk</a>
+                </div>
+              )}
+
+              <label className="block text-sm">
+                <span className="text-text-muted">Category</span>
+                <select value={selectedReview.category || ''} onChange={(e) => updateReview(selectedReview._id, { category: e.target.value || null })} className="mt-1 w-full px-3 py-2 bg-bg-elevated border border-border rounded-lg">
+                  <option value="">None</option>
+                  {CATEGORIES.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+                </select>
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={!!selectedReview.verified} onChange={(e) => updateReview(selectedReview._id, { verified: e.target.checked })} />
+                Verified buyer (only tick after checking the Order ID)
+              </label>
+
+              <div className="flex gap-2">
+                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${selectedReview.status === 'approved' ? 'bg-accent/10 text-accent' : selectedReview.status === 'pending' ? 'bg-warning/10 text-warning' : 'bg-error/10 text-error'}`}>{selectedReview.status}</span>
+              </div>
+              <div className="flex gap-2">
                 {selectedReview.status !== 'approved' && (
-                  <button onClick={() => { updateReview(selectedReview._id, { status: 'approved' }); setSelectedReview(null); }} className="px-4 py-2 bg-accent text-white text-sm rounded-lg">Approve</button>
+                  <button onClick={() => updateReview(selectedReview._id, { status: 'approved' })} className="px-4 py-2 bg-accent text-white text-sm rounded-lg">Approve</button>
                 )}
                 {selectedReview.status !== 'rejected' && (
-                  <button onClick={() => { updateReview(selectedReview._id, { status: 'rejected' }); setSelectedReview(null); }} className="px-4 py-2 bg-error text-white text-sm rounded-lg">Reject</button>
+                  <button onClick={() => updateReview(selectedReview._id, { status: 'rejected' })} className="px-4 py-2 bg-error text-white text-sm rounded-lg">Reject</button>
                 )}
               </div>
             </div>

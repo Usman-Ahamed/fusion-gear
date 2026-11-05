@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { compressImage } from '@/lib/compressImage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, CheckCircle, AlertCircle, Image as ImageIcon, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -23,8 +24,8 @@ export default function BulkUploadPage() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif'] },
-    maxSize: 10 * 1024 * 1024,
+    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
+    maxSize: 25 * 1024 * 1024,
   });
 
   const removeFile = (id) => {
@@ -53,12 +54,11 @@ export default function BulkUploadPage() {
 
     for (let i = 0; i < files.length; i++) {
       const formData = new FormData();
-      formData.append('images', files[i].file);
+      formData.append('images', await compressImage(files[i].file));
 
       try {
         const res = await fetch('/api/reviews/bulk', { method: 'POST', body: formData });
         const data = await res.json();
-        console.log(`Upload ${i + 1}/${files.length}:`, res.status, data);
         if (res.ok) {
           successful += data.results?.successful?.length || 0;
           failed += data.results?.failed?.length || 0;
