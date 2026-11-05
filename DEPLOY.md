@@ -36,7 +36,6 @@ Vercel → your project → **Settings → Environment Variables**. Add these fo
 | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Same as now |
 | `NEXT_PUBLIC_SITE_URL` | `https://reviews.fusiongear.lk` |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | e.g. `94771234567` (no + or spaces) |
-| `NEXT_PUBLIC_GOOGLE_REVIEWS_URL` | Optional. Link to your Google reviews, makes "4.8 Google rating" clickable |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Optional, recommended. See step 6 |
 | `REDIRECT_VERCEL_DOMAIN` | `false` for now. Step 5 turns it on |
 

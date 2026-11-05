@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { Camera, CheckCircle2, Loader2, X } from 'lucide-react';
 import StarInput from '@/components/ui/StarInput';
-import { CATEGORIES } from '@/config/site';
+import { CATEGORIES, GOOGLE_RATING } from '@/config/site';
 import { compressImage } from '@/lib/compressImage';
 
 const MAX_PHOTOS = 3;
@@ -90,7 +90,12 @@ export default function ReviewForm({ turnstileSiteKey }) {
         <CheckCircle2 size={40} className="mx-auto text-accent" aria-hidden="true" />
         <h2 className="mt-4 text-xl font-black uppercase">Thanks, got it!</h2>
         <p className="mt-2 text-muted">We check every review before it goes live. Yours should appear within a day or two.</p>
-        <Link href="/reviews" className="btn btn-dark mt-6">Read other reviews</Link>
+        <div className="mt-6 border-t border-line pt-6">
+          <p className="font-semibold">Got 10 more seconds?</p>
+          <p className="mt-1 text-sm text-muted">A Google review helps other fans find us.</p>
+          <a href={GOOGLE_RATING.writeReviewUrl} className="btn btn-outline mt-4">Review us on Google</a>
+        </div>
+        <Link href="/reviews" className="mt-6 inline-block text-sm font-semibold underline underline-offset-4">Read other reviews</Link>
       </div>
     );
   }

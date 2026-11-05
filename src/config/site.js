@@ -12,7 +12,8 @@ export const WHATSAPP_URL = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}`
 // Verifiable business figures. Update when they change.
 export const GOOGLE_RATING = {
   value: 4.8,
-  url: process.env.NEXT_PUBLIC_GOOGLE_REVIEWS_URL || null,
+  url: 'https://g.page/r/CVNgsHrNu9PBEAE',               // Google Business profile
+  writeReviewUrl: 'https://g.page/r/CVNgsHrNu9PBEAE/review', // opens "write a review" on Google
 };
 export const JERSEYS_DELIVERED = 9500; // shown as "9,500+"
 
