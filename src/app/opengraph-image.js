@@ -23,7 +23,7 @@ export default async function OgImage() {
   return new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#0a0a0a', color: '#fff', padding: 72 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <img src={`data:image/png;base64,${logo}`} height={110} />
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 84, fontWeight: 900, letterSpacing: -2, lineHeight: 1, textTransform: 'uppercase' }}>Real fans. Real reviews.</div>
